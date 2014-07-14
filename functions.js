@@ -1,20 +1,41 @@
 function Task3() {
 
-    this.partial = function(func) {
-        if (arguments.length > 1) {
-            var argsImplicit = Array.prototype.slice.call(arguments, 1);
-            return function partialFunction() {
-                var argsExplicit = Array.prototype.slice.call(arguments);
-                return func.apply(null, argsImplicit.concat(argsExplicit));
-            };
+    this.partial = function(fn) {
+        var argsImplicit = Array.prototype.slice.call(arguments, 1);
+
+        return function () {
+            var argsExplicit = Array.prototype.slice.call(arguments);
+            return fn.apply(null, argsImplicit.concat(argsExplicit));
+        };
+    };
+
+    this.curry = function (fn) {
+        var n;
+        var origArgs = Array.prototype.slice.call(arguments, 1);
+
+        if (typeof fn === 'number') {
+            n = fn;
+            fn = origArgs.shift();
+        } else {
+            n = fn.length;
         }
+
+        return function () {
+            var args = origArgs.concat(Array.prototype.slice.call(arguments));
+
+            if (args.length < n) {
+                return this.apply(this, [n, fn].concat(args))
+            } else {
+                return fn.apply(this, args);
+            }
+        };
     };
 
     this.linearFold = function (array, callback, initialValue) {
         var previousValue = 0;
 
         if (initialValue) {
-             previousValue = initialValue;
+            previousValue = initialValue;
         }
         for (var i = 0, length = array.length; i < length; i++) {
             previousValue = callback(previousValue, array[i], i, array);
@@ -39,6 +60,7 @@ function Task3() {
 
     this.map = function (array, callback) {
         var newArray = [];
+
         for (var i = 0, length = array.length; i < length; i++) {
             newArray[i] = callback(array[i]);
         }
@@ -47,6 +69,7 @@ function Task3() {
 
     this.filter = function filter(array, callback) {
         var newArray = [];
+
         for (var i = 0, length = array.length; i < length; i++) {
             if (callback(array[i])) {
                 newArray.push(array[i]);
@@ -66,19 +89,17 @@ function Task3() {
         return sum / arrayOfOnes.length;
     };
 
-    this.sumOfRandomNumbers = function (count, minValue, maxValue) {
-        count = typeof count !== 'undefined' ? count : 10;
+    this.sumOfRandomNumbers = function (minValue, maxValue) {
         var randomArray = this.linearUnfold(function(initialState) {
-            if (initialState >= count) {
+            if (initialState >= 10) {
                 return false;
             }
             var randomValue = Math.random() * (maxValue - minValue) + minValue;
             return { value: randomValue, state: initialState + 1 };
         });
-        var sum = this.linearFold(randomArray, function(previousValue, currentValue, index, array) {
+        return this.linearFold(randomArray, function(previousValue, currentValue, index, array) {
             return previousValue + currentValue;
         });
-        return sum;
     };
 
     this.first = function (array, callback) {
@@ -88,6 +109,16 @@ function Task3() {
             }
         }
         return null;
+    };
+
+    this.lazy = function (fn){
+        var args = Array.prototype.slice.call(arguments, 1);
+
+        var lazied = function () {
+            return fn.apply(this, args);
+        };
+
+        return lazied;
     };
 
     this.memoize = function (fn) {
