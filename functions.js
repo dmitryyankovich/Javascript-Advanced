@@ -8,29 +8,22 @@ function Task3() {
             return fn.apply(null, argsImplicit.concat(argsExplicit));
         };
     };
-
-    this.curry = function (fn) {
-        var n;
-        var origArgs = Array.prototype.slice.call(arguments, 1);
-
-        if (typeof fn === 'number') {
-            n = fn;
-            fn = origArgs.shift();
-        } else {
-            n = fn.length;
-        }
-
-        return function () {
-            var args = origArgs.concat(Array.prototype.slice.call(arguments));
-
-            if (args.length < n) {
-                return this.apply(this, [n, fn].concat(args))
+    
+    this.curry = function (fn, countRequiredArgs) {
+        var args = [];
+        return function curryN(arg) {
+            args.push(arg);
+            if (args.length != countRequiredArgs) {
+                return curryN;
             } else {
-                return fn.apply(this, args);
+                var result = fn.apply(null, args);
+                args = [];
+                return result;
             }
         };
     };
-
+        
+        
     this.linearFold = function (array, callback, initialValue) {
         var previousValue = 0;
 
